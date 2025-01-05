@@ -19,6 +19,14 @@ def get_tickets():
 @ticket_blueprint.route('/tickets', methods=['POST'])
 def create_ticket():
     data = request.json
+
+    # Validation
+    if not data.get('title') or not data.get('description'):
+        return jsonify({"error": "Title and description are required"}), 400
+    if data.get('priority') not in ['Low', 'Medium', 'High']:
+        return jsonify({"error": "Priority must be Low, Medium, or High"}), 400
+
+    # Create the ticket
     new_ticket = Ticket(
         title=data['title'],
         description=data['description'],
@@ -33,6 +41,12 @@ def create_ticket():
 def update_ticket(ticket_id):
     data = request.json
     ticket = Ticket.query.get_or_404(ticket_id)
+
+    # Validation
+    if data.get('priority') and data['priority'] not in ['Low', 'Medium', 'High']:
+        return jsonify({"error": "Priority must be Low, Medium, or High"}), 400
+
+    # Update the ticket
     ticket.status = data.get('status', ticket.status)
     ticket.priority = data.get('priority', ticket.priority)
     db.session.commit()
