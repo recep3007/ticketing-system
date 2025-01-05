@@ -1,7 +1,6 @@
 import os
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'a-very-secret-key'
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///tickets.db'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///tickets.db'  # SQLite database
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
+    SECRET_KEY = os.urandom(24)

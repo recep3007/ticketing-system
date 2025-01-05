@@ -1,39 +1,48 @@
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_from_directory, request
+from flask_cors import CORS
 from config import Config
 from models import db
 from routes import ticket_blueprint
+import os
 
-app = Flask(__name__, static_folder="static")  # Ensure Flask serves static files
+# Initialize the Flask app
+app = Flask(__name__, static_folder="static")
 
-# Load the config
+# Enable CORS
+CORS(app)
+
+# Load configuration
 app.config.from_object(Config)
 
 # Initialize the database
 db.init_app(app)
 
-# Register the blueprint
+# Register the blueprint for API routes
 app.register_blueprint(ticket_blueprint)
 
+# Serve the React app's main entry point
 @app.route("/")
 def home():
-    return "Hello, Flask with a Config!"
+    return send_from_directory(app.static_folder, "index.html")
 
-# Route to serve React's index.html (if the build folder is present)
-@app.route('/<path:path>')
-def serve(path):
-    return send_from_directory(app.static_folder, path)
+# Serve static files for React
+@app.route("/<path:path>")
+def serve_static_files(path):
+    file_path = os.path.join(app.static_folder, path)
+    if os.path.exists(file_path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, "index.html")
 
-# Error handler for resource not found
 @app.errorhandler(404)
 def resource_not_found(e):
     return jsonify({"error": "Resource not found"}), 404
 
-# Error handler for bad request
 @app.errorhandler(400)
 def bad_request(e):
     return jsonify({"error": "Bad request"}), 400
 
 if __name__ == "__main__":
     with app.app_context():
-        db.create_all()  # Create the database tables
-    app.run(debug=True)  # This will run the app locally in development
+        db.create_all()
+    app.run(debug=True)
